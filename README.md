@@ -72,6 +72,8 @@ flutter build apk --release --split-per-abi
 # most phones: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk (about 23 MB)
 ```
 
+Release builds are signed with the key named in `mobile/android/key.properties`. The key and that file are kept out of git; without them the build falls back to the debug key. Keep the same key for every release so new versions install over the old one.
+
 Run the tests with `flutter test`: 54 tests, covering QR and address parsing, the knob's "only the newest value" sender, the deck's grid maths, every screen at six phone and tablet sizes in both orientations (keys must reach the screen edges and stay near square), and the connection layer against a real local WebSocket server (pairing, wrong code, reply matching, reconnect, restore, a PC with a new code).
 
 ### Structure
