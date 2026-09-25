@@ -3,6 +3,7 @@ Dacx Desktop — entry point.
 Builds the CustomTkinter window and wires everything together.
 """
 
+import ctypes
 import os
 import threading
 
@@ -46,6 +47,13 @@ def on_command(msg: dict) -> dict:
 
 
 def main():
+    # Its own taskbar identity, so Windows shows the Dacx icon and doesn't
+    # group the window under python.exe.
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("BiswasMosam.Dacx")
+    except Exception:
+        pass
+
     server.on_command = on_command
     server.start_background()
 

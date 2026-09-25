@@ -2,7 +2,9 @@
 Main application window built entirely in CustomTkinter.
 """
 
+import ctypes
 import io
+import os
 import threading
 import webbrowser
 from typing import TYPE_CHECKING
@@ -36,6 +38,17 @@ FONT_BODY   = ("Segoe UI", 12)
 FONT_SMALL  = ("Segoe UI", 10)
 FONT_BTN    = ("Segoe UI", 11, "bold")
 
+ICON = os.path.join(os.path.dirname(__file__), "assets", "dacx.ico")
+
+
+def _use_dacx_icon(win):
+    """Dacx icon on the title and taskbar. Calling iconbitmap also stops
+    CustomTkinter from swapping in its own logo a moment after start."""
+    try:
+        win.iconbitmap(ICON)
+    except Exception:
+        pass
+
 
 def _card(parent, **kw) -> ctk.CTkFrame:
     return ctk.CTkFrame(
@@ -65,7 +78,11 @@ class AppWindow(ctk.CTk):
         self._spotify = spotify
 
         self.title("Dacx")
-        self.geometry("480x720")
+        _use_dacx_icon(self)
+        w, h = 480, 720
+        x = (self.winfo_screenwidth() - w) // 2
+        y = max(0, (self.winfo_screenheight() - h) // 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
         self.resizable(False, False)
         self.overrideredirect(True)   # frameless
         self._drag_x = self._drag_y = 0
@@ -76,6 +93,37 @@ class AppWindow(ctk.CTk):
         # Periodic refresh
         self._poll_system()
         self._poll_spotify()
+
+        # A frameless Tk window gets no taskbar button on Windows and Tk won't
+        # minimise it, so it was easy to lose behind other windows for good.
+        self.after(10, self._show_in_taskbar)
+
+    # ── Taskbar button, raise, minimise (frameless window on Windows) ─────────
+
+    def _hwnd(self) -> int:
+        return ctypes.windll.user32.GetParent(self.winfo_id())
+
+    def _show_in_taskbar(self):
+        GWL_EXSTYLE, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW = -20, 0x00040000, 0x00000080
+        hwnd = self._hwnd()
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+        ctypes.windll.user32.SetWindowLongW(
+            hwnd, GWL_EXSTYLE, (style & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW
+        )
+        # The taskbar only picks up the new style when the window is re-shown.
+        self.withdraw()
+        self.after(10, self._bring_to_front)
+
+    def _bring_to_front(self):
+        self.deiconify()
+        self.lift()
+        self.attributes("-topmost", True)
+        self.after(300, lambda: self.attributes("-topmost", False))
+        self.focus_force()
+
+    def _minimize(self):
+        # Tk refuses iconify() on a frameless window; ask Windows directly.
+        ctypes.windll.user32.ShowWindow(self._hwnd(), 6)   # SW_MINIMIZE
 
     # ── Drag support (frameless window) ───────────────────────────────────────
 
@@ -117,7 +165,7 @@ class AppWindow(ctk.CTk):
             tbar, text="—", width=30, height=28,
             fg_color="transparent", hover_color=SURFACE2,
             text_color=MUTED, font=("Segoe UI", 13),
-            command=self.iconify,
+            command=self._minimize,
         ).pack(side="right", pady=9)
 
         # ── Scrollable body ───────────────────────────────────────────────────
@@ -439,7 +487,8 @@ class AppWindow(ctk.CTk):
     # ── Window close → minimise ───────────────────────────────────────────────
 
     def _on_close(self):
-        self.iconify()
+        # Keeps the server running for the phone; the taskbar button brings it back.
+        self._minimize()
 
 
 # ── Spotify credentials dialog ────────────────────────────────────────────────
@@ -454,6 +503,7 @@ class SpotifyDialog(ctk.CTkToplevel):
         self.geometry("380x310")
         self.resizable(False, False)
         self.grab_set()
+        self.after(250, lambda: _use_dacx_icon(self))
 
         ctk.CTkLabel(self, text="Connect Spotify",
                      font=FONT_TITLE, text_color=TEXT).pack(pady=(20, 4))
@@ -522,6 +572,7 @@ class AppsDialog(ctk.CTkToplevel):
         self.geometry("460x460")
         self.resizable(False, False)
         self.grab_set()
+        self.after(250, lambda: _use_dacx_icon(self))
 
         ctk.CTkLabel(self, text="App Shortcuts",
                      font=FONT_TITLE, text_color=TEXT).pack(pady=(20, 4))
