@@ -37,7 +37,9 @@ The keys show live state, the way Stream Deck plugins do: the Media key's light 
 
 ### Media
 
-Four tall keys (Pause, Play, Previous, Next) and a rotary **volume knob**. Turn the knob with a finger in a circle; the LED ring fills from − to +, the grip rotates with it, and the phone ticks under your thumb. Tap the centre cap to mute.
+Four tall keys (Pause, Play, Previous, Next) and a rotary **volume knob**. At rest the knob is one clean circle: no numbers, no scale. **Press and hold** it and it grows a little while the level ring and the number fade in; turn clockwise for louder, anticlockwise for quieter, with a tick under your thumb every step. Let go and it's clean again. A quick **tap mutes** (the pointer turns amber).
+
+<img src="docs/screens/knob_states.jpg" width="680" alt="The knob at rest, held, and turning">
 
 <img src="docs/screens/media_landscape.jpg" width="680" alt="Media page: four keys and the volume knob">
 

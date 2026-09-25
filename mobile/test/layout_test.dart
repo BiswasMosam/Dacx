@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dacx/link.dart';
 import 'package:dacx/screens/deck_screen.dart';
 import 'package:dacx/screens/media_screen.dart';
@@ -127,12 +129,49 @@ void main() {
         final link = FakeLink();
         await _show(tester, size, link, const MediaScreen());
         expect(find.byType(VolumeKnob), findsOneWidget);
-        expect(find.text('56'), findsOneWidget);
+        // Clean at rest: no number, no − / +.
+        expect(find.text('56'), findsNothing);
+        expect(find.text('+'), findsNothing);
         expect(find.text('Midnight City'), findsNothing); // part of a rich text span
         expect(find.textContaining('Midnight City', findRichText: true), findsOneWidget);
         await tester.tap(find.text('PAUSE'));
         await tester.pump(const Duration(milliseconds: 100));
         expect(link.calls, contains('media.pause'));
+        await _close(tester);
+      });
+
+      testWidgets('knob: hold to see the level, turn to change it, tap to mute', (tester) async {
+        final link = FakeLink();
+        await _show(tester, size, link, const MediaScreen());
+        final knob = tester.getRect(find.byType(VolumeKnob));
+        final c = knob.center;
+        final reach = knob.shortestSide / 2 * 0.6;
+
+        // Hold without moving: the level shows, nothing changes.
+        final g = await tester.startGesture(c + Offset(0, -reach));
+        await tester.pump(const Duration(milliseconds: 200)); // hold delay passes
+        await tester.pump(const Duration(milliseconds: 300)); // fade-in runs
+        expect(find.text('56'), findsOneWidget);
+        expect(find.text('+'), findsOneWidget);
+
+        // A quarter turn clockwise, top to right: louder.
+        for (var deg = -90; deg <= 0; deg += 10) {
+          final a = deg * 3.14159265 / 180;
+          await g.moveTo(c + Offset(reach * cos(a), reach * sin(a)));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        expect(link.calls.where((c) => c == 'volume.set'), isNotEmpty);
+        expect(find.text('89'), findsOneWidget); // 56 + 90° of 270°
+        await g.up();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        expect(find.text('89'), findsNothing); // clean again
+        expect(link.calls, isNot(contains('volume.mute')));
+
+        // A quick tap mutes.
+        await tester.tapAt(c);
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(link.calls, contains('volume.mute'));
         await _close(tester);
       });
 
