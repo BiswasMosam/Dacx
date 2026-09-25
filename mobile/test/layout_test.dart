@@ -5,6 +5,7 @@ import 'package:dacx/screens/pair_screen.dart';
 import 'package:dacx/screens/spotify_screen.dart';
 import 'package:dacx/theme.dart';
 import 'package:dacx/widgets/deck_key.dart';
+import 'package:dacx/widgets/side_rail.dart';
 import 'package:dacx/widgets/volume_knob.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -100,24 +101,25 @@ Future<void> _close(WidgetTester tester) async {
 void main() {
   for (final MapEntry(key: name, value: size) in sizes.entries) {
     group(name, () {
-      testWidgets('deck shows 15 keys, 2 of them live', (tester) async {
+      testWidgets('deck fills the screen with near-square keys', (tester) async {
         await _show(tester, size, FakeLink(), const DeckScreen());
-        expect(find.byType(DeckKey), findsNWidgets(15));
-        // Right number of columns, and every key on screen.
-        final cols = size.width > size.height ? 5 : 3;
         final keys = find.byType(DeckKey);
-        final top = tester.getTopLeft(keys.at(0)).dy;
-        expect(tester.getTopLeft(keys.at(cols - 1)).dy, top);
-        expect(tester.getTopLeft(keys.at(cols)).dy, greaterThan(top));
-        final screen = Offset.zero & size;
-        for (var i = 0; i < 15; i++) {
+        final n = keys.evaluate().length;
+        expect(n, greaterThanOrEqualTo(12));
+        var right = 0.0, bottom = 0.0;
+        for (var i = 0; i < n; i++) {
           final r = tester.getRect(keys.at(i));
-          expect(screen.contains(r.topLeft) && screen.contains(r.bottomRight - const Offset(1, 1)), isTrue,
-              reason: 'key $i at $r is off screen');
+          expect(r.width / r.height, inInclusiveRange(0.7, 1.45), reason: 'key $i is $r');
+          expect(r.left, greaterThanOrEqualTo(SideRail.width - 0.5));
+          right = r.right > right ? r.right : right;
+          bottom = r.bottom > bottom ? r.bottom : bottom;
         }
+        // Edge to edge: only the 12 dp margin is left past the last key.
+        expect(right, closeTo(size.width - 12, 1));
+        expect(bottom, closeTo(size.height - 12, 1));
         expect(find.text('MEDIA'), findsOneWidget);
         expect(find.text('SPOTIFY'), findsOneWidget);
-        expect(find.text('Dexter'), findsOneWidget);
+        expect(find.text('DEXTER'), findsOneWidget);
         await _close(tester);
       });
 

@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:dacx/link.dart';
 import 'package:dacx/pacing.dart';
+import 'package:dacx/screens/deck_screen.dart';
 import 'package:dacx/screens/media_screen.dart';
 import 'package:dacx/theme.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -60,6 +62,13 @@ void main() {
     expect(mediaAppName('308046B0AF4A39CB'), isNull);
     expect(mediaAppName(''), isNull);
     expect(mediaAppName(null), isNull);
+  });
+
+  test('deckGrid keeps keys near square and fills both ways', () {
+    expect(deckGrid(const Size(774, 368)), (cols: 6, rows: 3)); // phone on its side
+    expect(deckGrid(const Size(316, 826)), (cols: 3, rows: 8)); // phone upright
+    expect(deckGrid(const Size(1204, 776)), (cols: 8, rows: 5)); // tablet on its side
+    expect(deckGrid(const Size(300, 300)), (cols: 3, rows: 3));
   });
 
   test('fmtTime', () {

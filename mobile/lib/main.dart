@@ -64,7 +64,6 @@ class _DacxAppState extends State<DacxApp> with WidgetsBindingObserver {
         debugShowCheckedModeBanner: false,
         theme: buildTheme(),
         navigatorKey: _nav,
-        builder: (context, child) => _ReconnectBanner(child: child!),
         home: const _Home(),
       ),
     );
@@ -84,57 +83,5 @@ class _Home extends StatelessWidget {
           ? const PairScreen(key: ValueKey('pair'))
           : const DeckScreen(key: ValueKey('deck')),
     );
-  }
-}
-
-/// A small pill over every page while the link is down.
-class _ReconnectBanner extends StatelessWidget {
-  const _ReconnectBanner({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final link = LinkScope.of(context);
-    final show = link.state == LinkState.reconnecting;
-    return Stack(children: [
-      child,
-      Positioned(
-        top: 0,
-        left: 0,
-        right: 0,
-        child: SafeArea(
-          child: IgnorePointer(
-            child: AnimatedSlide(
-              offset: show ? Offset.zero : const Offset(0, -2),
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1508),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Deck.warn.withValues(alpha: 0.35)),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const SizedBox.square(
-                      dimension: 12,
-                      child: CircularProgressIndicator(strokeWidth: 1.6, color: Deck.warn),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Reconnecting to ${link.pcName ?? 'your PC'}…',
-                      style: const TextStyle(color: Deck.warn, fontSize: 12.5, fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.none),
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ]);
   }
 }

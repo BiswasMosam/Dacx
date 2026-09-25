@@ -4,6 +4,7 @@ import '../link.dart';
 import '../pacing.dart';
 import '../theme.dart';
 import '../widgets/deck_key.dart';
+import '../widgets/side_rail.dart';
 import '../widgets/volume_knob.dart';
 
 /// Pause, Play, Previous and Next as tall keys, plus a rotary volume knob.
@@ -98,31 +99,29 @@ class _MediaScreenState extends State<MediaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final online = LinkScope.of(context).online;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: LayoutBuilder(builder: (context, box) {
-            final wide = box.maxWidth > box.maxHeight;
-            return Column(children: [
-              Row(children: [
-                const BackKey(),
-                const SizedBox(width: 14),
-                Text('MEDIA', style: capsLabel(color: Deck.text, size: 14)),
-                const SizedBox(width: 16),
-                Expanded(child: _NowPlaying(session: _session, pcName: _link.pcName)),
-              ]),
-              SizedBox(height: wide ? 12 : 18),
-              Expanded(child: _panel(wide)),
-            ]);
-          }),
-        ),
+        child: Row(children: [
+          const SideRail(back: true, title: 'MEDIA'),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+              child: AnimatedOpacity(
+                opacity: online ? 1 : 0.4,
+                duration: const Duration(milliseconds: 300),
+                child: LayoutBuilder(builder: (context, box) => _panel(box.maxWidth > box.maxHeight, box)),
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }
 
-  /// The controller body from the sketch: keys on one side, knob on the other.
-  Widget _panel(bool wide) {
+  /// The controller from the sketch: tall keys on one side, the knob on the
+  /// other. Upright, the keys sit above the knob.
+  Widget _panel(bool wide, BoxConstraints box) {
     final keys = Row(children: [
       for (final (i, k) in [
         ('pause', Icons.pause_rounded, 'PAUSE', _playing == false ? Deck.warn : null),
@@ -133,14 +132,12 @@ class _MediaScreenState extends State<MediaScreen> {
         if (i > 0) const SizedBox(width: 10),
         Expanded(
           child: DeckKey(
-            glow: Deck.accent,
-            lit: k.$4 != null,
+            led: k.$4,
             onTap: () => _transport(k.$1),
             child: LayoutBuilder(
               builder: (context, box) => KeyFace(
-                icon: Icon(k.$2, color: Deck.text, size: (box.maxWidth * 0.46).clamp(22.0, 44.0)),
+                icon: Icon(k.$2, color: Deck.text, size: (box.maxWidth * 0.44).clamp(22.0, 44.0)),
                 label: k.$3,
-                led: k.$4,
               ),
             ),
           ),
@@ -154,29 +151,25 @@ class _MediaScreenState extends State<MediaScreen> {
       onChanged: _setLevel,
       onMute: _toggleMute,
     );
+    final strip = _NowPlaying(session: _session, pcName: _link.pcName);
 
-    return Container(
-      padding: EdgeInsets.all(wide ? 18 : 16),
-      decoration: BoxDecoration(
-        color: Deck.body,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF1C1C23)),
-        boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 30, offset: Offset(0, 12))],
-      ),
-      child: wide
-          ? Row(children: [
-              Expanded(flex: 11, child: keys),
-              const SizedBox(width: 20),
-              Expanded(flex: 9, child: knob),
-            ])
-          : LayoutBuilder(builder: (context, box) {
-              return Column(children: [
-                SizedBox(height: (box.maxHeight * 0.34).clamp(130.0, 210.0), child: keys),
-                const SizedBox(height: 18),
-                Expanded(child: knob),
-              ]);
-            }),
-    );
+    if (wide) {
+      return Row(children: [
+        Expanded(flex: 11, child: keys),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 9,
+          child: Column(children: [strip, const SizedBox(height: 8), Expanded(child: knob)]),
+        ),
+      ]);
+    }
+    return Column(children: [
+      strip,
+      const SizedBox(height: 12),
+      SizedBox(height: (box.maxHeight * 0.32).clamp(130.0, 240.0), child: keys),
+      const SizedBox(height: 16),
+      Expanded(child: knob),
+    ]);
   }
 }
 
@@ -215,7 +208,7 @@ class _NowPlaying extends StatelessWidget {
     final idle = s == null || title.isEmpty;
 
     return Container(
-      height: 44,
+      height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: Deck.lcd,
@@ -232,6 +225,10 @@ class _NowPlaying extends StatelessWidget {
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.centerLeft,
+              children: [...previous, ?current],
+            ),
             child: Text.rich(
               key: ValueKey('$title|$artist'),
               TextSpan(children: [

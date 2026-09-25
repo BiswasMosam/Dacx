@@ -29,11 +29,11 @@ Both devices must be on the same WiFi. The desktop app shows a **6-digit pairing
 
 ## Mobile app
 
-Built with **Flutter** for Android. It opens on a grid of keys like a real Stream Deck: **3 × 5 held upright, 5 × 3 on its side**, so the deck turns with the phone. Two keys are live today; the dark slots are ready for the next ones.
+Built with **Flutter** for Android. It opens on a grid of keys like a real Stream Deck, **edge to edge**: everything that isn't a key (the logo, the page name, the PC's status) lives in a slim rail down the left side. The grid picks its rows and columns so keys stay close to square: **6 × 3 on a phone on its side, 3 × 8 upright**, more on a tablet, so the deck turns with the phone. Two keys are live today; the dark slots are ready for the next ones.
 
-<img src="docs/screens/deck_landscape.jpg" width="680" alt="The deck on its side, 5 by 3">
+<img src="docs/screens/deck_landscape.jpg" width="680" alt="The deck on its side, 6 by 3, with the rail on the left">
 
-The keys show live state, the way Stream Deck plugins do: the Media key's LED lights while something plays on the PC, and the Spotify key shows the current album art.
+The keys show live state, the way Stream Deck plugins do: the Media key's light comes on while something plays on the PC, and the Spotify key shows the current album art.
 
 ### Media
 
@@ -56,7 +56,7 @@ Black and green. Album art on one side; on the other, the song, a timeline you c
 
 ### Staying connected
 
-- Pairing is saved. The app reconnects on launch, when it returns to the foreground, and quietly in the background if the WiFi blinks (with a small "Reconnecting to …" pill).
+- Pairing is saved. The app reconnects on launch, when it returns to the foreground, and quietly in the background if the WiFi blinks. While it does, the rail's status light turns amber and the keys dim.
 - A key tapped during a brief reconnect waits a few seconds for the link rather than failing.
 - A 10 second heartbeat notices a dead connection before your next tap does.
 - The screen stays awake and the system bars are hidden while Dacx is open, so it can sit on a stand next to the PC.
@@ -70,7 +70,7 @@ flutter build apk --release --split-per-abi
 # most phones: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk (about 23 MB)
 ```
 
-Run the tests with `flutter test`: 53 tests, covering QR and address parsing, the knob's "only the newest value" sender, every screen at six phone and tablet sizes in both orientations, and the connection layer against a real local WebSocket server (pairing, wrong code, reply matching, reconnect, restore, a PC with a new code).
+Run the tests with `flutter test`: 54 tests, covering QR and address parsing, the knob's "only the newest value" sender, the deck's grid maths, every screen at six phone and tablet sizes in both orientations (keys must reach the screen edges and stay near square), and the connection layer against a real local WebSocket server (pairing, wrong code, reply matching, reconnect, restore, a PC with a new code).
 
 ### Structure
 
@@ -82,13 +82,14 @@ mobile/lib/
 ├── theme.dart              # Deck (violet) and Spotify (black & green) tokens
 ├── spotify.dart            # Spotify models + the drawn Spotify mark
 ├── screens/
-│   ├── deck_screen.dart    # The key grid, 3×5 / 5×3, live key art
+│   ├── deck_screen.dart    # Edge-to-edge key grid, near-square keys, live key art
 │   ├── media_screen.dart   # Media keys + knob
 │   ├── spotify_screen.dart # Player, queue, devices
 │   ├── pair_screen.dart    # Code entry
 │   └── scan_screen.dart    # QR scanner
 └── widgets/
-    ├── deck_key.dart       # The physical key: bezel, LCD, press + glow
+    ├── side_rail.dart      # Left rail: logo or back, page name, PC status
+    ├── deck_key.dart       # A key: tile or art face, status light, press
     └── volume_knob.dart    # Rotary knob with LED ring
 ```
 

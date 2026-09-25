@@ -130,11 +130,14 @@ class _PairScreenState extends State<PairScreen> {
       SizedBox.square(
         dimension: wide ? 150 : 132,
         child: DeckKey(
-          glow: Deck.accent,
-          lit: true,
           onTap: _busy ? null : _scan,
-          lcd: const BoxDecoration(
-            gradient: RadialGradient(radius: 0.9, colors: [Color(0x406D28D9), Deck.lcd]),
+          face: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(-0.7, -0.8),
+              radius: 1.5,
+              colors: [Color(0xFF8B5CF6), Color(0xFF5B21B6), Color(0xFF2A0E5C)],
+              stops: [0, 0.5, 1],
+            ),
           ),
           child: const KeyFace(
             icon: Icon(Icons.qr_code_scanner_rounded, size: 46, color: Deck.text),

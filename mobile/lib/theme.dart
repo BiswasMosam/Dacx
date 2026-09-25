@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 class Deck {
   static const bg = Color(0xFF060608);
   static const body = Color(0xFF0D0D11);
-  static const bezelTop = Color(0xFF1C1C23);
-  static const bezelBottom = Color(0xFF0B0B0E);
-  static const edge = Color(0xFF2A2A33);
+  // A live key is a dark raised tile; an empty slot is flatter and darker.
+  static const keyTop = Color(0xFF1B1B21);
+  static const keyBottom = Color(0xFF131317);
+  static const slot = Color(0xFF0E0E11);
   static const lcd = Color(0xFF040405);
   static const text = Color(0xFFECECF1);
   static const muted = Color(0xFF7A7A86);

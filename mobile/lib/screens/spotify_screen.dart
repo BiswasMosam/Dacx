@@ -8,7 +8,7 @@ import '../link.dart';
 import '../pacing.dart';
 import '../spotify.dart';
 import '../theme.dart';
-import '../widgets/deck_key.dart';
+import '../widgets/side_rail.dart';
 
 enum _Panel { now, queue, devices }
 
@@ -237,47 +237,25 @@ class _SpotifyScreenState extends State<SpotifyScreen> {
         body: Stack(children: [
           const Positioned.fill(child: _Glow()),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: LayoutBuilder(builder: (context, box) {
-                final wide = box.maxWidth > box.maxHeight;
-                return Column(children: [
-                  _header(),
-                  SizedBox(height: wide ? 14 : 22),
-                  Expanded(child: _body(wide)),
-                ]);
-              }),
-            ),
+            child: Row(children: [
+              const SideRail(back: true, title: 'SPOTIFY', mark: SpotifyGlyph(size: 26)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 12, 16, 12),
+                  child: AnimatedOpacity(
+                    opacity: LinkScope.of(context).online ? 1 : 0.4,
+                    duration: const Duration(milliseconds: 300),
+                    child: LayoutBuilder(
+                      builder: (context, box) => _body(box.maxWidth > box.maxHeight),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
           ),
         ]),
       ),
     );
-  }
-
-  Widget _header() {
-    final device = _st?.deviceName;
-    return Row(children: [
-      const BackKey(),
-      const SizedBox(width: 14),
-      const SpotifyGlyph(size: 22),
-      const SizedBox(width: 10),
-      Text('SPOTIFY', style: capsLabel(color: Sp.text, size: 14)),
-      const SizedBox(width: 16),
-      Expanded(
-        child: device == null
-            ? const SizedBox()
-            : Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            const Icon(Icons.volume_up_rounded, size: 14, color: Sp.green),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(device,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Sp.green, fontSize: 12, fontWeight: FontWeight.w600)),
-            ),
-          ]),
-      ),
-    ]);
   }
 
   Widget _body(bool wide) {
@@ -370,7 +348,8 @@ class _SpotifyScreenState extends State<SpotifyScreen> {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      // Upright, the player sits at the bottom, under the thumb.
+      mainAxisAlignment: compact ? MainAxisAlignment.center : MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AnimatedSwitcher(
@@ -383,6 +362,19 @@ class _SpotifyScreenState extends State<SpotifyScreen> {
             key: ValueKey(st.trackId ?? st.track),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (st.deviceName != null) ...[
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.volume_up_rounded, size: 14, color: Sp.green),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(st.deviceName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Sp.green, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ]),
+                SizedBox(height: compact ? 6 : 10),
+              ],
               Text(
                 st.track,
                 maxLines: compact ? 1 : 2,
