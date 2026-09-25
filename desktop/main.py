@@ -11,6 +11,7 @@ import customtkinter as ctk
 from dacx.ws_server import WsServer
 from dacx.actions import Actions
 from dacx.spotify_ctrl import SpotifyCtrl
+from dacx.media_ctrl import MediaCtrl
 from dacx.app_window import AppWindow
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ ctk.set_default_color_theme("dark-blue")
 server  = WsServer()
 actions = Actions(USER_DATA)
 spotify = SpotifyCtrl(USER_DATA)
+media   = MediaCtrl(actions)
 
 
 def on_command(msg: dict) -> dict:
@@ -32,6 +34,7 @@ def on_command(msg: dict) -> dict:
     if t == "volume":     return actions.handle_volume(msg)
     if t == "brightness": return actions.handle_brightness(msg)
     if t == "launch":     return actions.launch(msg.get("appId", ""))
+    if t == "media":      return media.handle(msg)
     if t == "spotify":    return spotify.handle(msg)
     if t == "get_state":
         return {

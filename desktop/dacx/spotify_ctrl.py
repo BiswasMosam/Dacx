@@ -123,18 +123,25 @@ class SpotifyCtrl:
             if not pb or not pb.get("item"):
                 return {"connected": True, "playing": False}
             item = pb["item"]
+            device = pb.get("device") or {}
             images = item["album"].get("images", [])
             return {
                 "connected":  True,
                 "playing":    pb["is_playing"],
+                "trackId":    item.get("id"),
                 "track":      item["name"],
                 "artist":     ", ".join(a["name"] for a in item["artists"]),
                 "album":      item["album"]["name"],
                 "albumArt":   images[0]["url"] if images else None,
                 "progress":   pb.get("progress_ms"),
                 "duration":   item["duration_ms"],
-                "volume":     (pb.get("device") or {}).get("volume_percent"),
-                "deviceName": (pb.get("device") or {}).get("name"),
+                "shuffle":    pb.get("shuffle_state", False),
+                "repeat":     pb.get("repeat_state", "off"),   # off | context | track
+                "volume":     device.get("volume_percent"),
+                "supportsVolume": device.get("supports_volume", True),
+                "deviceId":   device.get("id"),
+                "deviceName": device.get("name"),
+                "deviceType": device.get("type"),
             }
         except Exception as e:
             print(f"[Dacx] Spotify status: {e}")
@@ -142,18 +149,71 @@ class SpotifyCtrl:
 
     # ── Command router ────────────────────────────────────────────────────────
 
+    # ── Queue & devices ───────────────────────────────────────────────────────
+
+    @staticmethod
+    def _track_row(item: dict) -> dict:
+        album  = item.get("album") or {}
+        images = album.get("images") or (item.get("images") or [])
+        return {
+            "id":     item.get("id"),
+            "name":   item.get("name", ""),
+            "artist": ", ".join(a["name"] for a in item.get("artists", []))
+                      or (item.get("show") or {}).get("name", ""),
+            "image":  images[-1]["url"] if images else None,   # smallest
+        }
+
+    def get_queue(self) -> dict:
+        q = self._sp.queue() or {}
+        now = q.get("currently_playing")
+        return {
+            "current": self._track_row(now) if now else None,
+            "queue":   [self._track_row(i) for i in (q.get("queue") or [])[:30]],
+        }
+
+    def get_devices(self) -> dict:
+        devices = (self._sp.devices() or {}).get("devices", [])
+        return {"devices": [
+            {
+                "id":     d.get("id"),
+                "name":   d.get("name", ""),
+                "type":   d.get("type", ""),
+                "active": d.get("is_active", False),
+                "volume": d.get("volume_percent"),
+            }
+            for d in devices
+        ]}
+
+    # ── Command router ────────────────────────────────────────────────────────
+
+    _REASONS = {
+        "NO_ACTIVE_DEVICE": "No active Spotify device. Pick one in Devices.",
+        "PREMIUM_REQUIRED": "Spotify Premium is needed to control playback.",
+        "VOLUME_CONTROL_DISALLOW": "This device doesn't allow volume control.",
+    }
+
     def handle(self, msg: dict) -> dict:
-        if not self._sp:
-            raise RuntimeError("Spotify not authorized")
-
         a = msg.get("action")
-        if a == "play":     self._sp.start_playback()
-        elif a == "pause":  self._sp.pause_playback()
-        elif a == "next":   self._sp.next_track()
-        elif a == "previous": self._sp.previous_track()
-        elif a == "volume": self._sp.volume(max(0, min(100, int(msg.get("value", 50)))))
-        elif a == "seek":   self._sp.seek_track(int(msg.get("position", 0)))
-        elif a == "status": pass
-        else: raise ValueError(f"Unknown Spotify action: {a}")
+        if a == "status":
+            return {"authorized": self.is_connected(), "spotify": self.get_status()}
+        if not self._sp:
+            raise RuntimeError("Spotify isn't linked. Connect it in Dacx on your PC.")
 
-        return {"spotify": self.get_status()}
+        try:
+            if a == "queue":   return self.get_queue()
+            if a == "devices": return self.get_devices()
+
+            if a == "play":       self._sp.start_playback()
+            elif a == "pause":    self._sp.pause_playback()
+            elif a == "next":     self._sp.next_track()
+            elif a == "previous": self._sp.previous_track()
+            elif a == "volume":   self._sp.volume(max(0, min(100, int(msg.get("value", 50)))))
+            elif a == "seek":     self._sp.seek_track(int(msg.get("position", 0)))
+            elif a == "shuffle":  self._sp.shuffle(bool(msg.get("value")))
+            elif a == "repeat":   self._sp.repeat(msg.get("value", "off"))
+            elif a == "transfer": self._sp.transfer_playback(msg["deviceId"], force_play=True)
+            else: raise ValueError(f"Unknown Spotify action: {a}")
+        except spotipy.SpotifyException as e:
+            raise RuntimeError(self._REASONS.get(e.reason or "", e.msg or str(e))) from e
+
+        return {"authorized": True, "spotify": self.get_status()}

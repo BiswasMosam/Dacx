@@ -14,9 +14,11 @@ from typing import Optional
 # ── COM init helper (pycaw needs COM on the calling thread) ──────────────────
 
 def _com_init():
+    # Multithreaded apartment, so an endpoint made on one worker thread keeps
+    # working on the next. Raises if this thread already chose STA; that's fine.
     try:
-        import pythoncom
-        pythoncom.CoInitialize()
+        import comtypes
+        comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
     except Exception:
         pass
 
@@ -68,23 +70,37 @@ class Actions:
         from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
         from comtypes import CLSCTX_ALL
 
-        dev  = AudioUtilities.GetSpeakers()
-        iface = dev.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-        self._vol_ep = iface.QueryInterface(IAudioEndpointVolume)
+        dev = AudioUtilities.GetSpeakers()
+        if hasattr(dev, "EndpointVolume"):
+            # pycaw 2025+ wraps the device and exposes the endpoint directly
+            self._vol_ep = dev.EndpointVolume
+        else:
+            iface = dev.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+            self._vol_ep = iface.QueryInterface(IAudioEndpointVolume)
         return self._vol_ep
 
     def get_volume(self) -> int:
         try:
+            _com_init()
             return round(self._endpoint().GetMasterVolumeLevelScalar() * 100)
         except Exception:
             return 50
 
+    def get_muted(self) -> bool:
+        try:
+            _com_init()
+            return bool(self._endpoint().GetMute())
+        except Exception:
+            return False
+
     def set_volume(self, level: int) -> dict:
         level = max(0, min(100, int(level)))
+        _com_init()
         self._endpoint().SetMasterVolumeLevelScalar(level / 100.0, None)
         return {"volume": level}
 
     def toggle_mute(self) -> dict:
+        _com_init()
         ep  = self._endpoint()
         now = ep.GetMute()
         ep.SetMute(not now, None)

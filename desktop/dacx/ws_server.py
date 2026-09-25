@@ -102,7 +102,9 @@ class WsServer:
                     authed = True
                     info = {"id": client_id, "name": msg.get("name", "Mobile"), "ip": ip}
                     self._clients[client_id] = {**info, "ws": ws}
-                    await ws.send(json.dumps({"type": "auth_ok", "clientId": client_id}))
+                    await ws.send(json.dumps({
+                        "type": "auth_ok", "clientId": client_id, "host": socket.gethostname(),
+                    }))
 
                     if self.on_connect:
                         threading.Thread(
@@ -111,13 +113,15 @@ class WsServer:
                     continue
 
                 # ── Authenticated command ─────────────────────────────────
+                # The client's "id" is echoed so it can match replies to requests.
                 if self.on_command:
                     loop = asyncio.get_running_loop()
+                    req_id = msg.get("id")
                     try:
                         result = await loop.run_in_executor(None, self.on_command, msg)
-                        await ws.send(json.dumps({"type": "result", **(result or {})}))
+                        await ws.send(json.dumps({"type": "result", **(result or {}), "id": req_id}))
                     except Exception as e:
-                        await ws.send(json.dumps({"type": "error", "message": str(e)}))
+                        await ws.send(json.dumps({"type": "error", "message": str(e), "id": req_id}))
 
         except websockets.exceptions.ConnectionClosed:
             pass
