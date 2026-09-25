@@ -14,7 +14,8 @@ from typing import Optional
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-REDIRECT_URI = "http://localhost:8888/callback"
+# Spotify rejects "localhost" redirect URIs since 2025; loopback has to be the IP.
+REDIRECT_URI = "http://127.0.0.1:8888/callback"
 SCOPE = (
     "user-read-playback-state "
     "user-modify-playback-state "
@@ -102,7 +103,7 @@ class SpotifyCtrl:
             def log_message(self, *args):  # silence request log
                 pass
 
-        httpd = HTTPServer(("localhost", 8888), _Handler)
+        httpd = HTTPServer(("127.0.0.1", 8888), _Handler)
         httpd.timeout = 120
         httpd.handle_request()
 

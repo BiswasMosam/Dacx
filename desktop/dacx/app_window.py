@@ -511,7 +511,7 @@ class SpotifyDialog(ctk.CTkToplevel):
             self,
             text=(
                 "Create a Spotify app at developer.spotify.com\n"
-                "and set redirect URI: http://localhost:8888/callback"
+                "and set redirect URI: http://127.0.0.1:8888/callback"
             ),
             font=FONT_SMALL, text_color=MUTED, justify="center",
         ).pack(pady=(0, 16))

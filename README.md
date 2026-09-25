@@ -126,7 +126,7 @@ desktop/
 ### Spotify setup
 
 1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
-2. Create an app and set the redirect URI to `http://localhost:8888/callback`
+2. Create an app, tick **Web API**, and set the redirect URI to `http://127.0.0.1:8888/callback` (Spotify no longer accepts `localhost`)
 3. Copy the Client ID and Client Secret
 4. Click **Connect** on the Spotify card in Dacx desktop and paste them in
 
