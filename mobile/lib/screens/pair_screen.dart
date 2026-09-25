@@ -131,14 +131,7 @@ class _PairScreenState extends State<PairScreen> {
         dimension: wide ? 150 : 132,
         child: DeckKey(
           onTap: _busy ? null : _scan,
-          face: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(-0.7, -0.8),
-              radius: 1.5,
-              colors: [Color(0xFF8B5CF6), Color(0xFF5B21B6), Color(0xFF2A0E5C)],
-              stops: [0, 0.5, 1],
-            ),
-          ),
+          face: const BoxDecoration(color: Deck.violet),
           child: const KeyFace(
             icon: Icon(Icons.qr_code_scanner_rounded, size: 46, color: Deck.text),
             label: 'SCAN QR',
@@ -249,7 +242,7 @@ class _ConnectButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          gradient: const LinearGradient(colors: [Deck.accentDeep, Deck.accent]),
+          color: Deck.violet,
           boxShadow: [BoxShadow(color: Deck.accent.withValues(alpha: busy ? 0.1 : 0.3), blurRadius: 24)],
         ),
         child: busy

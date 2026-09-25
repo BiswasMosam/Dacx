@@ -32,13 +32,7 @@ class _DeckKeyState extends State<DeckKey> {
     setState(() => _down = down);
   }
 
-  static const _tile = BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Deck.keyTop, Deck.keyBottom],
-    ),
-  );
+  static const _tile = BoxDecoration(color: Deck.key);
   static const _slot = BoxDecoration(color: Deck.slot);
 
   @override

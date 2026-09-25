@@ -235,7 +235,6 @@ class _SpotifyScreenState extends State<SpotifyScreen> {
       child: Scaffold(
         backgroundColor: Sp.bg,
         body: Stack(children: [
-          const Positioned.fill(child: _Glow()),
           SafeArea(
             child: Row(children: [
               const SideRail(back: true, title: 'SPOTIFY', mark: SpotifyGlyph(size: 26)),
@@ -548,21 +547,6 @@ class _SpotifyScreenState extends State<SpotifyScreen> {
 }
 
 // ── Pieces ────────────────────────────────────────────────────────────────────
-
-/// A faint green light in the corner, so the black has some depth.
-class _Glow extends StatelessWidget {
-  const _Glow();
-  @override
-  Widget build(BuildContext context) => const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(-1.1, -1.2),
-            radius: 1.4,
-            colors: [Color(0x221ED760), Color(0x00000000)],
-          ),
-        ),
-      );
-}
 
 class _Art extends StatelessWidget {
   const _Art({required this.url, required this.size});

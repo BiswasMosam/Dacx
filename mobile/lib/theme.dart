@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 class Deck {
   static const bg = Color(0xFF060608);
   static const body = Color(0xFF0D0D11);
-  // A live key is a dark raised tile; an empty slot is flatter and darker.
-  static const keyTop = Color(0xFF1B1B21);
-  static const keyBottom = Color(0xFF131317);
+  // Flat fills only: dark gradients band into visible steps on screens.
+  static const key = Color(0xFF17171C);
+  static const knob = Color(0xFF1C1C22);
+  static const violet = Color(0xFF7C3AED);
   static const slot = Color(0xFF0E0E11);
   static const lcd = Color(0xFF040405);
   static const text = Color(0xFFECECF1);

@@ -90,14 +90,7 @@ class _DeckScreenState extends State<DeckScreen> with SingleTickerProviderStateM
 
   List<Widget> _keys() => [
         DeckKey(
-          face: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(-0.7, -0.8),
-              radius: 1.5,
-              colors: [Color(0xFF8B5CF6), Color(0xFF5B21B6), Color(0xFF2A0E5C)],
-              stops: [0, 0.5, 1],
-            ),
-          ),
+          face: const BoxDecoration(color: Deck.violet),
           led: _mediaPlaying ? Deck.ok : null,
           onTap: () => _go(const MediaScreen()),
           child: const KeyFace(icon: _MediaGlyph(), label: 'MEDIA'),
@@ -205,14 +198,7 @@ class _SpotifyKey extends StatelessWidget {
   final SpStatus? status;
   final VoidCallback onTap;
 
-  static const _green = BoxDecoration(
-    gradient: RadialGradient(
-      center: Alignment(-0.7, -0.8),
-      radius: 1.5,
-      colors: [Color(0xFF1ED760), Color(0xFF12803B), Color(0xFF06311A)],
-      stops: [0, 0.5, 1],
-    ),
-  );
+  static const _green = BoxDecoration(color: Color(0xFF1DB954));
 
   @override
   Widget build(BuildContext context) {

@@ -271,7 +271,7 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.value != value || old.muted != muted || old.color != color;
 }
 
-/// The knob: one smooth dark disc with a small pointer dot that turns with
+/// The knob: one flat dark disc with a small pointer dot that turns with
 /// the value. Nothing else, so it reads as a single clean circle.
 class _KnobPainter extends CustomPainter {
   _KnobPainter({required this.value, required this.muted});
@@ -285,31 +285,15 @@ class _KnobPainter extends CustomPainter {
     final r = size.shortestSide / 2;
     final bodyR = r * 0.7; // held: 0.7 × 1.15, just inside the ring
 
-    canvas.drawCircle(
-      c + Offset(0, r * 0.05),
-      bodyR,
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.85)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.07),
-    );
-    canvas.drawCircle(
-      c,
-      bodyR,
-      Paint()
-        ..shader = const RadialGradient(
-          center: Alignment(-0.35, -0.45),
-          radius: 1.15,
-          colors: [Color(0xFF2E2E37), Color(0xFF17171C), Color(0xFF0B0B0E)],
-          stops: [0, 0.55, 1],
-        ).createShader(Rect.fromCircle(center: c, radius: bodyR)),
-    );
+    // One flat disc with a hairline edge. No shading: dark gradients band.
+    canvas.drawCircle(c, bodyR, Paint()..color = Deck.knob);
     canvas.drawCircle(
       c,
       bodyR,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = Colors.white.withValues(alpha: 0.07),
+        ..color = Colors.white.withValues(alpha: 0.08),
     );
 
     // Pointer: a small dot near the edge. Amber while muted.
