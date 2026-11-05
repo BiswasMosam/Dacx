@@ -1,0 +1,26 @@
+# Analyzes the phone app and runs its layout, link and logic tests on every push and pull request.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.6
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
